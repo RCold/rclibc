@@ -1,436 +1,272 @@
+#include "_stdio.h"
+#include "ctype.h"
 #include "stdarg.h"
-#include "stdio.h"
+#include "stdlib.h"
 #include "string.h"
 
-#define BUFFERSIZE      512         /* size of conversion buffer */
-#define MAXPRECISION    BUFFERSIZE  /* ANSI-specified minimum is 509 */
-#define NUMSTATES       8           /* number of STATE members */
+#define INT_BUFSIZE         24          /* output buffer size for integers */
 
-#define FLAG_SIGN       0x0001      /* put plus or minus in front */
-#define FLAG_SIGNSPACE  0x0002      /* put space or minus in front */
-#define FLAG_LEFT       0x0004      /* left justify */
-#define FLAG_LEADZERO   0x0008      /* pad with leading zeros */
-#define FLAG_LONG       0x0010      /* long int value given */
-#define FLAG_SHORT      0x0020      /* short int value given */
-#define FLAG_LONGDOUBLE 0x0040      /* long double value given */
-#define FLAG_SIGNED     0x0080      /* signed data given */
-#define FLAG_CAPITAL    0x0100      /* capital form requested */
-#define FLAG_ALTERNATE  0x0200      /* alternate form requested */
-#define FLAG_NEGATIVE   0x0400      /* value is negative */
+#define FLAG_LEFT           0x0001      /* left justify */
+#define FLAG_SIGN           0x0002      /* put plus or minus in front */
+#define FLAG_SPACE          0x0004      /* put space or minus in front */
+#define FLAG_ALTERNATE      0x0008      /* alternate form requested */
+#define FLAG_ZERO           0x0010      /* pad with leading zeros */
+#define FLAG_SHORT          0x0020      /* short value given */
+#define FLAG_LONG           0x0040      /* long value given */
+#define FLAG_LONGDOUBLE     0x0080      /* long double value given */
+#define FLAG_SIGNED         0x0100      /* signed data given */
+#define FLAG_NEGATIVE       0x0200      /* value is negative */
 
-#define charclass(c) \
-    ((c) < ' ' || (c) > 'x' ? CHAR_OTHER : sctab[(c) - ' '] & 0x0f)
-
-#define curstate(class, state) \
-    (sctab[(class) * NUMSTATES + (state)] >> 4)
-
-typedef struct {
-	int type;
-	int flags;
-	int radix;
-	int width;
-	int precision;
-	int textlen;
-	int prefixlen;
-	int charsout;
-	char *text;
-	char prefix[2];
-	union {
-		long int vlong;
-		unsigned long int vulong;
-		long double vldouble;
-		int *pint;
-		short int *pshort;
-		long int *plong;
-	} value;
-} FMT;
-
-enum STATE {
-	STATE_NORMAL,   /* normal state */
-	STATE_PERCENT,  /* just read '%' */
-	STATE_FLAG,     /* just read flag character */
-	STATE_WIDTH,    /* just read width specifier */
-	STATE_DOT,      /* just read '.' */
-	STATE_PRECIS,   /* just read precision specifier */
-	STATE_SIZE,     /* just read size specifier */
-	STATE_TYPE      /* just read type specifier */
+struct print_data {
+    char spec;              /* conversion specifier */
+    int flag;               /* flags */
+    int width;              /* width */
+    int prec;               /* precision */
+    int size;               /* size of converted field or string */
+    int padding;            /* number of padding characters */
+    int ret;                /* return value accumulator */
+    char prefix;            /* prefix, "+/-/space" or "0/x/X" */
 };
 
-enum CHARCLASS {
-	CHAR_OTHER,     /* character with no special meaning */
-	CHAR_PERCENT,   /* '%' */
-	CHAR_DOT,       /* '.' */
-	CHAR_STAR,      /* '*' */
-	CHAR_ZERO,      /* '0' */
-	CHAR_DIGIT,     /* '1'..'9' */
-	CHAR_FLAG,      /* ' ','+','-','#' */
-	CHAR_SIZE,      /* 'h','l','L' */
-	CHAR_TYPE       /* 'c','d','e','f','g', ... */
-};
-
-static const char sctab[] = {
-	/* ' ' */ 0x06,
-	/* '!' */ 0x00,
-	/* '"' */ 0x00,
-	/* '#' */ 0x06,
-	/* '$' */ 0x00,
-	/* '%' */ 0x01,
-	/* '&' */ 0x00,
-	/* ''' */ 0x00,
-	/* '(' */ 0x10,
-	/* ')' */ 0x00,
-	/* '*' */ 0x03,
-	/* '+' */ 0x06,
-	/* ',' */ 0x00,
-	/* '-' */ 0x06,
-	/* '.' */ 0x02,
-	/* '/' */ 0x10,
-	/* '0' */ 0x04,
-	/* '1' */ 0x45,
-	/* '2' */ 0x45,
-	/* '3' */ 0x45,
-	/* '4' */ 0x05,
-	/* '5' */ 0x05,
-	/* '6' */ 0x05,
-	/* '7' */ 0x05,
-	/* '8' */ 0x05,
-	/* '9' */ 0x35,
-	/* ':' */ 0x30,
-	/* ';' */ 0x00,
-	/* '<' */ 0x50,
-	/* '=' */ 0x00,
-	/* '>' */ 0x00,
-	/* '?' */ 0x00,
-	/* '@' */ 0x00,
-	/* 'A' */ 0x20,
-	/* 'B' */ 0x20,
-	/* 'C' */ 0x30,
-	/* 'D' */ 0x50,
-	/* 'E' */ 0x58,
-	/* 'F' */ 0x00,
-	/* 'G' */ 0x08,
-	/* 'H' */ 0x00,
-	/* 'I' */ 0x30,
-	/* 'J' */ 0x30,
-	/* 'K' */ 0x30,
-	/* 'L' */ 0x57,
-	/* 'M' */ 0x50,
-	/* 'N' */ 0x00,
-	/* 'O' */ 0x00,
-	/* 'P' */ 0x00,
-	/* 'Q' */ 0x20,
-	/* 'R' */ 0x20,
-	/* 'S' */ 0x00,
-	/* 'T' */ 0x00,
-	/* 'U' */ 0x00,
-	/* 'V' */ 0x00,
-	/* 'W' */ 0x00,
-	/* 'X' */ 0x08,
-	/* 'Y' */ 0x60,
-	/* 'Z' */ 0x60,
-	/* '[' */ 0x60,
-	/* '\' */ 0x60,
-	/* ']' */ 0x60,
-	/* '^' */ 0x60,
-	/* '_' */ 0x00,
-	/* '`' */ 0x00,
-	/* 'a' */ 0x70,
-	/* 'b' */ 0x70,
-	/* 'c' */ 0x78,
-	/* 'd' */ 0x78,
-	/* 'e' */ 0x78,
-	/* 'f' */ 0x78,
-	/* 'g' */ 0x08,
-	/* 'h' */ 0x07,
-	/* 'i' */ 0x08,
-	/* 'j' */ 0x00,
-	/* 'k' */ 0x00,
-	/* 'l' */ 0x07,
-	/* 'm' */ 0x00,
-	/* 'n' */ 0x08,
-	/* 'o' */ 0x08,
-	/* 'p' */ 0x08,
-	/* 'q' */ 0x00,
-	/* 'r' */ 0x00,
-	/* 's' */ 0x08,
-	/* 't' */ 0x00,
-	/* 'u' */ 0x08,
-	/* 'v' */ 0x00,
-	/* 'w' */ 0x00,
-	/* 'x' */ 0x08
-};
-
-static char buffer[BUFFERSIZE];
-static char *nullstring = "(null)";
-
-static size_t strnlen(const char *s, size_t n) {
-	const char *p;
-	for (p = s; n > 0 && *p != '\0'; p++, n--)
-		;
-	return p - s;
+static int print_char(FILE *fp, struct print_data *data, int c) {
+    if (putc(c, fp) == EOF) {
+        data->ret = -1;
+        return -1;
+    }
+    data->ret++;
+    return 0;
 }
 
-static void writechar(int c, FILE *stream, FMT *fmt) {
-	if (putc(c, stream) == EOF)
-		fmt->charsout = -1;
-	else
-		fmt->charsout++;
-	return;
+static int print_chars(FILE *fp, struct print_data *data, int c, int n) {
+    while (n-- > 0)
+        if (print_char(fp, data, c) != 0)
+            return -1;
+    return 0;
 }
 
-static void writechars(int c, int n, FILE *stream, FMT *fmt) {
-	while (fmt->charsout >= 0 && n-- > 0)
-		writechar(c, stream, fmt);
-	return;
+static int print_string(FILE *fp, struct print_data *data, const char *s, int size) {
+    if (fwrite(s, size, 1, fp) < 1) {
+        data->ret = -1;
+        return -1;
+    }
+    data->ret += size;
+    return 0;
 }
 
-static void writestr(char *s, int n, FILE *stream, FMT *fmt) {
-	while (fmt->charsout >= 0 && n-- > 0)
-		writechar(*s++, stream, fmt);
-	return;
+static int print_prefix(FILE *fp, struct print_data *data) {
+    int n = 0;
+    char prefix[2];
+    if (strchr("+- 0", data->prefix) != NULL) {
+        prefix[n++] = data->prefix;
+    } else if (strchr("xX", data->prefix) != NULL) {
+        prefix[n++] = '0';
+        prefix[n++] = data->prefix;
+    }
+    data->padding = data->width - data->size - n;
+    if (!(data->flag & (FLAG_LEFT | FLAG_ZERO)) && print_chars(fp, data, ' ', data->padding) != 0)
+        return -1;
+    if (print_string(fp, data, prefix, n) != 0)
+        return -1;
+    if (data->flag & FLAG_ZERO && !(data->flag & FLAG_LEFT) && print_chars(fp, data, '0', data->padding) != 0)
+        return -1;
+    return 0;
 }
 
-static void fmtint(FMT *fmt) {
-	int digit;
-	int hexadd;
-	if (fmt->flags & FLAG_CAPITAL)
-		hexadd = 'A' - '9' - 1;
-	else
-		hexadd = 'a' - '9' - 1;
-	fmt->text = buffer + BUFFERSIZE;
-	while (fmt->precision-- > 0 || fmt->value.vulong != 0) {
-		digit = fmt->value.vulong % fmt->radix + '0';
-		fmt->value.vulong /= fmt->radix;
-		if (digit > '9')
-			digit += hexadd;
-		*--fmt->text = (char) digit;
-	}
-	fmt->textlen = (int) (buffer + BUFFERSIZE - fmt->text);
-	if (fmt->flags & FLAG_SIGNED) {
-		if (fmt->flags & FLAG_NEGATIVE) {
-			fmt->prefix[0] = '-';
-			fmt->prefixlen = 1;
-		} else if (fmt->flags & FLAG_SIGN) {
-			fmt->prefix[0] = '+';
-			fmt->prefixlen = 1;
-		} else if (fmt->flags & FLAG_SIGNSPACE) {
-			fmt->prefix[0] = ' ';
-			fmt->prefixlen = 1;
-		}
-	}
-	if (fmt->flags & FLAG_ALTERNATE) {
-		if (fmt->type == 'o' && *fmt->text != '0') {
-			fmt->prefix[0] = '0';
-			fmt->prefixlen = 1;
-		} else if (fmt->type == 'x') {
-			fmt->prefix[0] = '0';
-			if (fmt->flags & FLAG_CAPITAL)
-				fmt->prefix[1] = 'X';
-			else
-				fmt->prefix[1] = 'x';
-			fmt->prefixlen = 2;
-		}
-	}
-	return;
+static int print_suffix(FILE *fp, struct print_data *data) {
+    if (data->flag & FLAG_LEFT && print_chars(fp, data, ' ', data->padding) != 0)
+        return -1;
+    return 0;
 }
 
-static void output(FILE *stream, FMT *fmt) {
-	int padding;
-	if (fmt->type == 'n') {
-		if (fmt->flags & FLAG_LONG)
-			*fmt->value.plong = (long int) fmt->charsout;
-		else if (fmt->flags & FLAG_SHORT)
-			*fmt->value.pshort = (short int) fmt->charsout;
-		else
-			*fmt->value.pint = fmt->charsout;
-		return;
-	}
-	padding = fmt->width - fmt->textlen - fmt->prefixlen;
-	if (!(fmt->flags & (FLAG_LEFT | FLAG_LEADZERO)))
-		writechars(' ', padding, stream, fmt);
-	writestr(fmt->prefix, fmt->prefixlen, stream, fmt);
-	if ((fmt->flags & FLAG_LEADZERO) && !(fmt->flags & FLAG_LEFT))
-		writechars('0', padding, stream, fmt);
-	writestr(fmt->text, fmt->textlen, stream, fmt);
-	if (fmt->flags & FLAG_LEFT)
-		writechars(' ', padding, stream, fmt);
-	return;
+int print_float(FILE *fp, struct print_data *data, va_list *ap) {
+    /* TODO: Function `print_float' needs to be implemented. */
+    (void) fp;
+    data->flag & FLAG_LONGDOUBLE ? va_arg(*ap, long double) : va_arg(*ap, double);
+    return 0;
 }
 
-int vfprintf(FILE *stream, const char *format, va_list arg) {
-	int c;
-	enum STATE state;
-	enum CHARCLASS class;
-	FMT fmt;
-	fmt.textlen = 0;
-	fmt.prefixlen = 0;
-	fmt.charsout = 0;
-	state = STATE_NORMAL;
-	while (fmt.charsout >= 0 && (c = *format++) != '\0') {
-		class = charclass(c);
-		state = curstate(class, state);
-		switch (state) {
-		case STATE_NORMAL:
-			writechar(c, stream, &fmt);
-			break;
-		case STATE_PERCENT:
-			fmt.flags = 0;
-			fmt.width = 0;
-			fmt.precision = -1;
-			break;
-		case STATE_FLAG:
-			switch (c) {
-			case '-':
-				fmt.flags |= FLAG_LEFT;
-				break;
-			case '+':
-				fmt.flags |= FLAG_SIGN;
-				break;
-			case ' ':
-				fmt.flags |= FLAG_SIGNSPACE;
-				break;
-			case '#':
-				fmt.flags |= FLAG_ALTERNATE;
-				break;
-			case '0':
-				fmt.flags |= FLAG_LEADZERO;
-				break;
-			}
-			break;
-		case STATE_WIDTH:
-			if (c != '*')
-				fmt.width = fmt.width * 10 + (c - '0');
-			else {
-				fmt.width = va_arg(arg, int);
-				if (fmt.width < 0) {
-					fmt.flags |= FLAG_LEFT;
-					fmt.width = -fmt.width;
-				}
-			}
-			break;
-		case STATE_DOT:
-			fmt.precision = 0;
-			break;
-		case STATE_PRECIS:
-			if (c != '*')
-				fmt.precision = fmt.precision * 10 + (c - '0');
-			else {
-				fmt.precision = va_arg(arg, int);
-				if (fmt.precision < 0)
-					fmt.precision = -1;
-			}
-			break;
-		case STATE_SIZE:
-			switch (c) {
-			case 'l':
-				fmt.flags |= FLAG_LONG;
-				break;
-			case 'h':
-				fmt.flags |= FLAG_SHORT;
-				break;
-			case 'L':
-				fmt.flags |= FLAG_LONGDOUBLE;
-				break;
-			}
-			break;
-		case STATE_TYPE:
-			fmt.type = c;
-			switch (c) {
-			case 'c':
-				fmt.value.vlong = va_arg(arg, int);
-				fmt.text = (char *) &fmt.value.vlong;
-				fmt.textlen = 1;
-				break;
-			case 's':
-				fmt.text = va_arg(arg, char *);
-				if (fmt.text == NULL)
-					fmt.text = nullstring;
-				if (fmt.precision < 0)
-					fmt.textlen = (int) strlen(fmt.text);
-				else
-					fmt.textlen = (int) strnlen(fmt.text, fmt.precision);
-				break;
-			case 'n':
-				if (fmt.flags & FLAG_LONG)
-					fmt.value.plong = va_arg(arg, long int *);
-				else if (fmt.flags & FLAG_SHORT)
-					fmt.value.pshort = va_arg(arg, short int *);
-				else
-					fmt.value.pint = va_arg(arg, int *);
-				break;
-			case 'E':
-			case 'G':
-				fmt.flags |= FLAG_CAPITAL;
-				fmt.type += 'a' - 'A';
-				/* DROP THROUGH */
-			case 'e':
-			case 'f':
-			case 'g':
-				fmt.flags |= FLAG_SIGNED;
-				if (fmt.flags & FLAG_LONGDOUBLE)
-					fmt.value.vldouble = va_arg(arg, long double);
-				else
-					fmt.value.vldouble = va_arg(arg, double);
-				if (fmt.precision < 0)
-					fmt.precision = 6;
-				else if (fmt.type == 'g' && fmt.precision == 0)
-					fmt.precision = 1;
-				else if (fmt.precision > MAXPRECISION)
-					fmt.precision = MAXPRECISION;
-				break;
-			case 'd':
-			case 'i':
-				fmt.flags |= FLAG_SIGNED;
-				/* DROP THROUGH */
-			case 'u':
-				fmt.radix = 10;
-				goto INT_COMMON;
-			case 'o':
-				fmt.radix = 8;
-				goto INT_COMMON;
-			case 'p':
-				fmt.flags |= FLAG_LONG;
-				fmt.precision = sizeof(void *) * 2;
-				fmt.radix = 16;
-				goto INT_COMMON;
-			case 'X':
-				fmt.flags |= FLAG_CAPITAL;
-				fmt.type += 'a' - 'A';
-				/* DROP THROUGH */
-			case 'x':
-				fmt.radix = 16;
-				/* DROP THROUGH */
-			INT_COMMON:
-				if (fmt.flags & FLAG_SIGNED) {
-					if (fmt.flags & FLAG_LONG)
-						fmt.value.vlong = va_arg(arg, long int);
-					else
-						fmt.value.vlong = va_arg(arg, int);
-					if (fmt.value.vlong < 0) {
-						fmt.flags |= FLAG_NEGATIVE;
-						fmt.value.vlong = -fmt.value.vlong;
-					}
-				} else {
-					if (fmt.flags & FLAG_LONG)
-						fmt.value.vulong = va_arg(arg, unsigned long int);
-					else
-						fmt.value.vulong = va_arg(arg, unsigned int);
-				}
-				if (fmt.value.vulong == 0)
-					fmt.flags &= ~FLAG_ALTERNATE;
-				if (fmt.precision < 0)
-					fmt.precision = 1;
-				else {
-					fmt.flags &= ~FLAG_LEADZERO;
-					if (fmt.precision > MAXPRECISION)
-						fmt.precision = MAXPRECISION;
-				}
-				fmtint(&fmt);
-				break;
-			}
-			output(stream, &fmt);
-			break;
-		}
-	}
-	return fmt.charsout;
+int print_int(FILE *fp, struct print_data *data, va_list *ap) {
+    int base, buflen;
+    char *p;
+    char *digs = "0123456789abcdef";
+    char buf[INT_BUFSIZE];
+    union {
+        int64_t i;
+        uint64_t u;
+    } val;
+    switch (data->spec) {
+        case 'd':
+        case 'i':
+            data->flag |= FLAG_SIGNED;
+            /* fallthrough */
+        case 'u':
+            base = 10;
+            break;
+        case 'o':
+            base = 8;
+            break;
+        case 'X':
+            digs = "0123456789ABCDEF";
+            /* fallthrough */
+        case 'p':
+        case 'x':
+            base = 16;
+            break;
+        default:
+            return -1;
+    }
+    if (data->spec == 'p') {
+        val.u = (uint64_t) va_arg(*ap, void *);
+    } else if (data->flag & FLAG_SIGNED) {
+        val.i = data->flag & FLAG_SHORT ? (short) va_arg(*ap, int) :
+                data->flag & FLAG_LONG ? va_arg(*ap, long) : va_arg(*ap, int);
+        if (val.i < 0) {
+            val.i = -val.i;
+            data->flag |= FLAG_NEGATIVE;
+        }
+    } else {
+        val.u = data->flag & FLAG_SHORT ? (unsigned short) va_arg(*ap, unsigned int) :
+                data->flag & FLAG_LONG ? va_arg(*ap, unsigned long) : va_arg(*ap, unsigned int);
+    }
+    if (data->prec < 0)
+        data->prec = 1;
+    else
+        data->flag &= ~FLAG_ZERO;
+    p = _ultoa(val.u, buf + INT_BUFSIZE, base, digs);
+    buflen = (int) (buf + INT_BUFSIZE - p);
+    data->size = buflen > data->prec ? buflen : data->prec;
+    data->prefix = '\0';
+    if (data->spec == 'p') {
+        data->prefix = 'x';
+    } else if (data->flag & FLAG_SIGNED) {
+        if (data->flag & FLAG_NEGATIVE)
+            data->prefix = '-';
+        else if (data->flag & FLAG_SIGN)
+            data->prefix = '+';
+        else if (data->flag & FLAG_SPACE)
+            data->prefix = ' ';
+    } else if (data->flag & FLAG_ALTERNATE) {
+        if (data->spec == 'o' && data->size <= buflen)
+            data->prefix = '0';
+        else if ((data->spec == 'x' || data->spec == 'X') && val.u != 0)
+            data->prefix = data->spec;
+    }
+    if (print_prefix(fp, data) != 0)
+        return -1;
+    if (print_chars(fp, data, '0', data->size - buflen) != 0)
+        return -1;
+    if (print_string(fp, data, p, buflen) != 0)
+        return -1;
+    if (print_suffix(fp, data) != 0)
+        return -1;
+    return 0;
+}
+
+int print(FILE *fp, struct print_data *data, va_list *ap) {
+    char *s, *p;
+    if (strchr("eEfgG", data->spec) != NULL)
+        return print_float(fp, data, ap);
+    else if (strchr("diouxXp", data->spec) != NULL)
+        return print_int(fp, data, ap);
+    data->prefix = '\0';
+    switch (data->spec) {
+        case 'c':
+            data->size = 1;
+            if (print_prefix(fp, data) != 0)
+                return -1;
+            if (print_char(fp, data, va_arg(*ap, int)) != 0)
+                return -1;
+            break;
+        case 's':
+            s = va_arg(*ap, char *);
+            if (data->prec < 0)
+                data->size = (int) strlen(s);
+            else if ((p = memchr(s, '\0', data->prec)) != NULL)
+                data->size = (int) (p - s);
+            else
+                data->size = data->prec;
+            if (print_prefix(fp, data) != 0)
+                return -1;
+            if (print_string(fp, data, s, data->size) != 0)
+                return -1;
+            break;
+        case 'n':
+            if (data->flag & FLAG_SHORT)
+                *va_arg(*ap, short int *) = (short) data->ret;
+            else if (data->flag & FLAG_LONG)
+                *va_arg(*ap, long int *) = data->ret;
+            else
+                *va_arg(*ap, int *) = data->ret;
+            return 0;
+        case '\0':
+            return -1;
+        default:
+            data->size = 1;
+            if (print_prefix(fp, data) != 0)
+                return -1;
+            if (print_char(fp, data, data->spec) != 0)
+                return -1;
+            break;
+    }
+    if (print_suffix(fp, data) != 0)
+        return -1;
+    return 0;
+}
+
+int vfprintf(FILE *fp, const char *format, va_list arg) {
+    int n;
+    const char *fmt = format;
+    const char *p;
+    const char *flag_chars;
+    va_list ap;
+    struct print_data data;
+    __va_copy(ap, arg);
+    data.ret = 0;
+    while (1) {
+        p = fmt;
+        for (; *fmt != '\0' && *fmt != '%'; fmt++);
+        if ((n = (int) (fmt - p)) > 0)
+            if (print_string(fp, &data, p, n) != 0)
+                break;
+        if (*fmt == '\0')
+            break;
+        fmt++;
+        data.flag = 0;
+        data.width = 0;
+        data.prec = -1;
+        flag_chars = "-+ #0";
+        for (; (p = strchr(flag_chars, *fmt)) != NULL; fmt++)
+            data.flag |= (FLAG_LEFT << (p - flag_chars));
+        if (*fmt == '*') {
+            data.width = va_arg(ap, int);
+            if (data.width < 0) {
+                data.width = -data.width;
+                data.flag |= FLAG_LEFT;
+            }
+            fmt++;
+        } else if (isdigit(*fmt)) {
+            data.width = (int) strtol(fmt, (char **) &fmt, 10);
+        }
+        if (*fmt == '.') {
+            fmt++;
+            if (*fmt == '*') {
+                data.prec = va_arg(ap, int);
+                if (data.prec < 0)
+                    data.prec = -1;
+                fmt++;
+            } else if (isdigit(*fmt)) {
+                data.prec = (int) strtol(fmt, (char **) &fmt, 10);
+            }
+        }
+        flag_chars = "hlL";
+        if ((p = strchr(flag_chars, *fmt)) != NULL) {
+            data.flag |= (FLAG_SHORT << (p - flag_chars));
+            fmt++;
+        }
+        data.spec = *fmt++;
+        if (print(fp, &data, &ap) != 0)
+            break;
+    }
+    va_end(ap);
+    return data.ret;
 }

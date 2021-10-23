@@ -1,29 +1,23 @@
-#include "internal.h"
-#include "stdio.h"
-#include "syscall.h"
+#include "_stdio.h"
+#include "_unistd.h"
 
-int fgetc(FILE *stream) {
-	ssize_t result;
-	if (stream->_ptr < stream->_rend)
-		return *(unsigned char *) stream->_ptr++;
-	if ((stream->_flag & _IOSTRG) || !(stream->_flag & (_IOREAD | _IORW))
-			|| (stream->_flag & _IOWRT)) {
-		stream->_flag |= _IOERR;
-		return EOF;
-	}
-	if (stream->_ptr == NULL)
-		_allocbuf(stream);
-	stream->_flag |= _IOREAD;
-	if (stream->_end <= stream->_base || (result = read(stream->_file,
-			stream->_base, stream->_end - stream->_base)) == -1) {
-		stream->_flag |= _IOERR;
-		return EOF;
-	}
-	stream->_ptr = stream->_base;
-	stream->_rend = stream->_base + result;
-	if (result == 0) {
-		stream->_flag |= _IOEOF;
-		return EOF;
-	}
-	return *(unsigned char *) stream->_ptr++;
+int fgetc(FILE *fp) {
+    ssize_t n;
+    if (fp->_ptr < fp->_rend)
+        return *(unsigned char *) fp->_ptr++;
+    if (!__is_valid(fp) || !__is_readable(fp) || __is_writing(fp))
+        return EOF;
+    if (fp->_ptr == NULL)
+        _allocbuf(fp);
+    if ((n = read(fp->_file, fp->_base, fp->_end - fp->_base)) == -1) {
+        fp->_flag |= __IOERR;
+        return EOF;
+    }
+    fp->_ptr = fp->_base;
+    fp->_rend = fp->_base + n;
+    if (n == 0) {
+        fp->_flag |= __IOEOF;
+        return EOF;
+    }
+    return *(unsigned char *) fp->_ptr++;
 }

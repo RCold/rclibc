@@ -1,23 +1,18 @@
-#include "internal.h"
-#include "stdio.h"
+#include "_stdio.h"
 
-int ungetc(int c, FILE *stream) {
-	if ((stream->_flag & _IOSTRG) || !(stream->_flag & (_IOREAD | _IORW))
-			|| (stream->_flag & _IOWRT)) {
-		stream->_flag |= _IOERR;
-		return EOF;
-	}
-	if (c == EOF || (stream->_rend > stream->_base
-			&& stream->_ptr <= stream->_base))
-		return EOF;
-	if (stream->_ptr == NULL)
-		_allocbuf(stream);
-	stream->_flag |= _IOREAD;
-	if (stream->_ptr > stream->_base)
-		*--stream->_ptr = (char) c;
-	else {
-		*stream->_ptr = (char) c;
-		stream->_rend = stream->_ptr + 1;
-	}
-	return (unsigned char) c;
+int ungetc(int c, FILE *fp) {
+    if (!__is_valid(fp) || !__is_readable(fp) || __is_writing(fp))
+        return EOF;
+    if (c == EOF || (__is_reading(fp) && fp->_ptr <= fp->_base))
+        return EOF;
+    if (fp->_ptr == NULL)
+        _allocbuf(fp);
+    if (fp->_ptr > fp->_base) {
+        *--fp->_ptr = (char) c;
+    } else {
+        *fp->_ptr = (char) c;
+        fp->_rend = fp->_ptr + 1;
+    }
+    fp->_flag &= ~__IOEOF;
+    return (unsigned char) c;
 }

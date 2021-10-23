@@ -1,7 +1,5 @@
-#include "internal.h"
-#include "stdio.h"
+#include "_stdio.h"
 
-void clearerr(FILE *stream) {
-	stream->_flag &= ~(_IOERR | _IOEOF);
-	return;
+void clearerr(FILE *fp) {
+    fp->_flag &= ~(__IOEOF | __IOERR);
 }

@@ -1,7 +1,6 @@
-#include "internal.h"
-#include "stdio.h"
+#include "_stdio.h"
 
-FILE *freopen(const char *filename, const char *mode, FILE *stream) {
-	_fclose(stream);
-	return _fopen(filename, mode, stream);
+FILE *freopen(const char *filename, const char *mode, FILE *fp) {
+    _fclose(fp);
+    return _fopen(filename, mode, fp);
 }

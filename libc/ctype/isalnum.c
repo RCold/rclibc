@@ -1,6 +1,5 @@
 #include "ctype.h"
-#include "internal.h"
 
 int (isalnum)(int c) {
-	return _ptype[c] & _ALNUM;
+    return _ptype[c] & _ALNUM;
 }

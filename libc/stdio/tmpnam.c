@@ -1,12 +1,10 @@
-#include "internal.h"
-#include "stdio.h"
+#include "_stdio.h"
+
+static unsigned int seed = 0;
+static char buf[L_tmpnam];
 
 char *tmpnam(char *s) {
-	static unsigned long int seed = 0;
-	static char namebuf[L_tmpnam];
-	if (s == NULL)
-		s = namebuf;
-	if (_tmpnam(s, &seed) == NULL)
-		return NULL;
-	return s;
+    if (s == NULL)
+        s = buf;
+    return _tmpnam(s, &seed);
 }

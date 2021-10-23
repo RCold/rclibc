@@ -1,6 +1,5 @@
-#include "internal.h"
-#include "stdio.h"
+#include "_stdio.h"
 
-int feof(FILE *stream) {
-	return stream->_flag & _IOEOF;
+int feof(FILE *fp) {
+    return fp->_flag & __IOEOF;
 }

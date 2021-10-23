@@ -1,26 +1,22 @@
-#include "internal.h"
-#include "stdio.h"
+#include "_stdio.h"
 
-int fputc(int c, FILE *stream) {
-	if (stream->_ptr + 1 < stream->_wend)
-		return *(unsigned char *) stream->_ptr++ = (unsigned char) c;
-	if ((stream->_flag & _IOSTRG) || !(stream->_flag & (_IOWRT | _IORW))
-			|| ((stream->_flag & _IOREAD) && !(stream->_flag & _IOEOF))) {
-		stream->_flag |= _IOERR;
-		return EOF;
-	}
-	if (stream->_ptr == NULL)
-		_allocbuf(stream);
-	if (stream->_flag & _IOREAD)
-		stream->_flag &= ~_IOREAD;
-	stream->_flag |= _IOWRT;
-	*stream->_ptr++ = (char) c;
-	if ((stream->_ptr >= stream->_end || ((stream->_flag & _IOLBF) && c == '\n'))
-			&& fflush(stream) == EOF)
-		return EOF;
-	if (stream->_flag & _IOLBF)
-		stream->_wend = stream->_ptr + 1;
-	else
-		stream->_wend = stream->_end;
-	return (unsigned char) c;
+int fputc(int c, FILE *fp) {
+    if (fp->_ptr + 1 < fp->_wend)
+        return *(unsigned char *) fp->_ptr++ = (unsigned char) c;
+    if (!__is_valid(fp) || !__is_writable(fp) || __is_reading(fp))
+        return EOF;
+    if (fp->_ptr == NULL)
+        _allocbuf(fp);
+    *fp->_ptr++ = (char) c;
+    if (fp->_flag & __IOFBF)
+        fp->_wend = fp->_end;
+    else if (fp->_flag & __IOLBF)
+        fp->_wend = fp->_ptr + 1;
+    else if (fp->_flag & __IONBF || !__is_writing(fp))
+        fp->_wend = fp->_ptr;
+    if ((fp->_ptr >= fp->_wend || fp->_ptr >= fp->_end || (fp->_flag & __IOLBF && c == '\n')) && _fflush(fp) == EOF) {
+        fp->_flag |= __IOERR;
+        return EOF;
+    }
+    return (unsigned char) c;
 }

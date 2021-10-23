@@ -3,93 +3,100 @@
 #include <limits.h>
 #include <stdio.h>
 
-static void prclass(const char *name, int (*fn)(int)) {
-	int c;
-	printf("%s: ", name);
-	for (c = 0; c <= UCHAR_MAX; c++)
-		if ((*fn)(c))
-			putchar(c);
-	putchar('\n');
-	return;
+static void test(int c) {
+    if (c >= 'A' && c <= 'Z') {
+        assert(isupper(c));
+        assert((isupper)(c));
+        assert(tolower(c) == c - 'A' + 'a');
+        assert((tolower)(c) == c - 'A' + 'a');
+    } else {
+        assert(!isupper(c));
+        assert(!(isupper)(c));
+        assert(tolower(c) == c);
+        assert((tolower)(c) == c);
+    }
+    if (c >= 'a' && c <= 'z') {
+        assert(islower(c));
+        assert((islower)(c));
+        assert(toupper(c) == c - 'a' + 'A');
+        assert((toupper)(c) == c - 'a' + 'A');
+    } else {
+        assert(!islower(c));
+        assert(!(islower)(c));
+        assert(toupper(c) == c);
+        assert((toupper)(c) == c);
+    }
+    if (isupper(c) || islower(c)) {
+        assert(isalpha(c));
+        assert((isalpha)(c));
+    } else {
+        assert(!isalpha(c));
+        assert(!(isalpha)(c));
+    }
+    if (c >= '0' && c <= '9') {
+        assert(isdigit(c));
+        assert((isdigit)(c));
+    } else {
+        assert(!isdigit(c));
+        assert(!(isdigit)(c));
+    }
+    if (isdigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+        assert(isxdigit(c));
+        assert((isxdigit)(c));
+    } else {
+        assert(!isxdigit(c));
+        assert(!(isxdigit)(c));
+    }
+    if (isalpha(c) || isdigit(c)) {
+        assert(isalnum(c));
+        assert((isalnum)(c));
+    } else {
+        assert(!isalnum(c));
+        assert(!(isalnum)(c));
+    }
+    if (c >= '!' && c <= '~') {
+        assert(isgraph(c));
+        assert((isgraph)(c));
+    } else {
+        assert(!isgraph(c));
+        assert(!(isgraph)(c));
+    }
+    if (isgraph(c) && !isalnum(c)) {
+        assert(ispunct(c));
+        assert((ispunct)(c));
+    } else {
+        assert(!ispunct(c));
+        assert(!(ispunct)(c));
+    }
+    if (isgraph(c) || c == ' ') {
+        assert(isprint(c));
+        assert((isprint)(c));
+    } else {
+        assert(!isprint(c));
+        assert(!(isprint)(c));
+    }
+    if (c >= '\x00' && c <= '\x7f' && !isprint(c)) {
+        assert(iscntrl(c));
+        assert((iscntrl)(c));
+    } else {
+        assert(!iscntrl(c));
+        assert(!(iscntrl)(c));
+    }
+    if ((c >= '\t' && c <= '\r') || c == ' ') {
+        assert(isspace(c));
+        assert((isspace)(c));
+    } else {
+        assert(!isspace(c));
+        assert(!(isspace)(c));
+    }
 }
 
 int main(void) {
-	unsigned char *s;
-	int c;
-	prclass("ispunct", &ispunct);
-	prclass("isdigit", &isdigit);
-	prclass("islower", &islower);
-	prclass("isupper", &isupper);
-	prclass("isalpha", &isalpha);
-	prclass("isalnum", &isalnum);
-	for (s = (unsigned char *) "0123456789"; *s; s++)
-		assert(isdigit(*s) && isxdigit(*s));
-	for (s = (unsigned char *) "abcdefABCDEF"; *s; s++)
-		assert(isxdigit(*s));
-	for (s = (unsigned char *) "abcdefghijklmnopqrstuvwxyz"; *s; s++)
-		assert(islower(*s));
-	for (s = (unsigned char *) "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; *s; s++)
-		assert(isupper(*s));
-	for (s = (unsigned char *) "!\"#%&'();<=>?[\\]*+,-./:^_{|}~"; *s; s++)
-		assert(ispunct(*s));
-	for (s = (unsigned char *) "\f\n\r\t\v"; *s; s++)
-		assert(isspace(*s) && iscntrl(*s));
-	assert(isspace(' ') && isprint(' '));
-	assert(iscntrl('\a') && iscntrl('\b'));
-	for (c = EOF; c <= UCHAR_MAX; c++) {
-		if (isdigit(c))
-			assert(isalnum(c));
-		if (isupper(c))
-			assert(isalpha(c));
-		if (islower(c))
-			assert(isalpha(c));
-		if (isalpha(c))
-			assert(isalnum(c) && !isdigit(c));
-		if (isalnum(c))
-			assert(isgraph(c) && !ispunct(c));
-		if (ispunct(c))
-			assert(isgraph(c));
-		if (isgraph(c))
-			assert(isprint(c));
-		if (isspace(c))
-			assert(c==' ' || !isprint(c));
-		if (iscntrl(c))
-			assert(!isalnum(c));
-	}
-	for (s = (unsigned char *) "0123456789"; *s; s++)
-		assert((isdigit)(*s) && (isxdigit)(*s));
-	for (s = (unsigned char *) "abcdefABCDEF"; *s; s++)
-		assert((isxdigit)(*s));
-	for (s = (unsigned char *) "abcdefghijklmnopqrstuvwxyz"; *s; s++)
-		assert((islower)(*s));
-	for (s = (unsigned char *) "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; *s; s++)
-		assert((isupper)(*s));
-	for (s = (unsigned char *) "!\"#%&'();<=>?[\\]*+,-./:^_{|}~"; *s; s++)
-		assert((ispunct)(*s));
-	for (s = (unsigned char *) "\f\n\r\t\v"; *s; s++)
-		assert((isspace)(*s) && (iscntrl)(*s));
-	assert((isspace)(' ') && (isprint)(' '));
-	assert((iscntrl)('\a') && (iscntrl)('\b'));
-	for (c = EOF; c <= UCHAR_MAX; c++) {
-		if ((isdigit)(c))
-			assert((isalnum)(c));
-		if ((isupper)(c))
-			assert((isalpha)(c));
-		if ((islower)(c))
-			assert((isalpha)(c));
-		if ((isalpha)(c))
-			assert((isalnum)(c) && !(isdigit)(c));
-		if ((isalnum)(c))
-			assert((isgraph)(c) && !(ispunct)(c));
-		if ((ispunct)(c))
-			assert((isgraph)(c));
-		if ((isgraph)(c))
-			assert((isprint)(c));
-		if ((isspace)(c))
-			assert(c == ' ' || !(isprint)(c));
-		if ((iscntrl)(c))
-			assert(!(isalnum)(c));
-	}
-	puts("SUCCESS testing <ctype.h>");
-	return 0;
+    int c;
+    test(EOF);
+    for (c = SCHAR_MIN; c <= UCHAR_MAX; c++) {
+        test(c);
+    }
+    puts("SUCCESS testing <ctype.h>");
+    return 0;
 }

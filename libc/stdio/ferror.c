@@ -1,6 +1,5 @@
-#include "internal.h"
-#include "stdio.h"
+#include "_stdio.h"
 
-int ferror(FILE *stream) {
-	return stream->_flag & _IOERR;
+int ferror(FILE *fp) {
+    return fp->_flag & __IOERR;
 }
