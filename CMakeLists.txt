@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(crt C)
+project(rclibc C)
 set(CMAKE_C_STANDARD 90)
 if (MSVC)
     add_compile_options(/X)
