@@ -29,11 +29,7 @@
 #if defined(__SIZE_TYPE__)
 typedef __SIZE_TYPE__ size_t;
 #elif defined(_WIN64)
-#ifdef __GNUC__
-__extension__ typedef unsigned long long int size_t;
-#else
-typedef unsigned __int64 size_t;
-#endif /* __GNUC__ */
+__extension__ typedef unsigned __int64 size_t;
 #elif defined(_WIN32)
 typedef unsigned int size_t;
 #else
@@ -73,11 +69,7 @@ typedef int wchar_t;
 #if defined(__PTRDIFF_TYPE__)
 typedef __PTRDIFF_TYPE__ ptrdiff_t;
 #elif defined(_WIN64)
-#ifdef __GNUC__
-__extension__ typedef long long int ptrdiff_t;
-#else
-typedef __int64 ptrdiff_t;
-#endif /* __GNUC__ */
+__extension__ typedef __int64 ptrdiff_t;
 #elif defined(_WIN32)
 typedef int ptrdiff_t;
 #else

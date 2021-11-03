@@ -3,6 +3,7 @@
 
 FILE *_fopen(const char *filename, const char *mode, FILE *fp) {
     int oflag;
+    int oprot = 0666;
     switch (*mode++) {
         case 'r':
             fp->_flag = __IOREAD;
@@ -42,7 +43,7 @@ FILE *_fopen(const char *filename, const char *mode, FILE *fp) {
         oflag |= O_CREAT;
     if (fp->_flag & __IOBIN)
         oflag |= O_BINARY;
-    fp->_file = open(filename, oflag);
+    fp->_file = open(filename, oflag, oprot);
     if (fp->_file == -1) {
         fp->_flag = 0;
         _freefile(fp);

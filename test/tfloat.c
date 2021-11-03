@@ -39,7 +39,7 @@ int main(void) {
            || LDBL_MAX > ldexp(1.0, LDBL_MAX_EXP - 1));
     assert(LDBL_MIN_EXP < DBL_MIN_EXP
            || LDBL_MIN == ldexp(1.0, LDBL_MIN_EXP - 1));
-#endif
+#endif /* FLT_RADIX == 2 */
     puts("SUCCESS testing <float.h>");
     return 0;
 }

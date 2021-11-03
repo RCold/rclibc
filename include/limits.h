@@ -24,14 +24,13 @@
 #define INT_MAX         2147483647
 #define UINT_MAX        4294967295U
 
-#ifdef __LP64__
 #define LONG_MIN        (-LONG_MAX - 1L)
+#ifdef __LP64__
 #define LONG_MAX        9223372036854775807L
 #define ULONG_MAX       18446744073709551615UL
 #else
-#define LONG_MIN        INT_MIN
-#define LONG_MAX        INT_MAX
-#define ULONG_MAX       UINT_MAX
+#define LONG_MAX        2147483647L
+#define ULONG_MAX       4294967295UL
 #endif /* __LP64__ */
 
 #endif /* _LIMITS_H */

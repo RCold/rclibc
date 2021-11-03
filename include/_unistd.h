@@ -13,7 +13,14 @@
 
 __BEGIN_DECLS
 
+#if defined(_WIN64)
+__extension__ typedef __int64 ssize_t;
+#elif defined(_WIN32)
+typedef int ssize_t;
+#else
 typedef long int ssize_t;
+#endif /* defined(_WIN64) */
+
 typedef int pid_t;
 
 int access(const char *, int);

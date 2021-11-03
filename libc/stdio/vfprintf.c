@@ -11,8 +11,8 @@
 #define FLAG_SPACE          0x0004      /* put space or minus in front */
 #define FLAG_ALTERNATE      0x0008      /* alternate form requested */
 #define FLAG_ZERO           0x0010      /* pad with leading zeros */
-#define FLAG_SHORT          0x0020      /* short value given */
-#define FLAG_LONG           0x0040      /* long value given */
+#define FLAG_SHORT          0x0020      /* short int value given */
+#define FLAG_LONG           0x0040      /* long int value given */
 #define FLAG_LONGDOUBLE     0x0080      /* long double value given */
 #define FLAG_SIGNED         0x0100      /* signed data given */
 #define FLAG_NEGATIVE       0x0200      /* value is negative */
@@ -78,21 +78,21 @@ static int print_suffix(FILE *fp, struct print_data *data) {
     return 0;
 }
 
-int print_float(FILE *fp, struct print_data *data, va_list *ap) {
+static int print_float(FILE *fp, struct print_data *data, va_list *ap) {
     /* TODO: Function `print_float' needs to be implemented. */
     (void) fp;
     data->flag & FLAG_LONGDOUBLE ? va_arg(*ap, long double) : va_arg(*ap, double);
     return 0;
 }
 
-int print_int(FILE *fp, struct print_data *data, va_list *ap) {
+static int print_int(FILE *fp, struct print_data *data, va_list *ap) {
     int base, buflen;
     char *p;
     char *digs = "0123456789abcdef";
     char buf[INT_BUFSIZE];
     union {
-        int64_t i;
-        uint64_t u;
+        intptr_t i;
+        uintptr_t u;
     } val;
     switch (data->spec) {
         case 'd':
@@ -116,17 +116,17 @@ int print_int(FILE *fp, struct print_data *data, va_list *ap) {
             return -1;
     }
     if (data->spec == 'p') {
-        val.u = (uint64_t) va_arg(*ap, void *);
+        val.u = (uintptr_t) va_arg(*ap, void *);
     } else if (data->flag & FLAG_SIGNED) {
-        val.i = data->flag & FLAG_SHORT ? (short) va_arg(*ap, int) :
-                data->flag & FLAG_LONG ? va_arg(*ap, long) : va_arg(*ap, int);
+        val.i = data->flag & FLAG_SHORT ? (short int) va_arg(*ap, int) :
+                data->flag & FLAG_LONG ? va_arg(*ap, long int) : va_arg(*ap, int);
         if (val.i < 0) {
             val.i = -val.i;
             data->flag |= FLAG_NEGATIVE;
         }
     } else {
-        val.u = data->flag & FLAG_SHORT ? (unsigned short) va_arg(*ap, unsigned int) :
-                data->flag & FLAG_LONG ? va_arg(*ap, unsigned long) : va_arg(*ap, unsigned int);
+        val.u = data->flag & FLAG_SHORT ? (unsigned short int) va_arg(*ap, unsigned int) :
+                data->flag & FLAG_LONG ? va_arg(*ap, unsigned long int) : va_arg(*ap, unsigned int);
     }
     if (data->prec < 0)
         data->prec = 1;
@@ -162,7 +162,7 @@ int print_int(FILE *fp, struct print_data *data, va_list *ap) {
     return 0;
 }
 
-int print(FILE *fp, struct print_data *data, va_list *ap) {
+static int print(FILE *fp, struct print_data *data, va_list *ap) {
     char *s, *p;
     if (strchr("eEfgG", data->spec) != NULL)
         return print_float(fp, data, ap);
@@ -192,7 +192,7 @@ int print(FILE *fp, struct print_data *data, va_list *ap) {
             break;
         case 'n':
             if (data->flag & FLAG_SHORT)
-                *va_arg(*ap, short int *) = (short) data->ret;
+                *va_arg(*ap, short int *) = (short int) data->ret;
             else if (data->flag & FLAG_LONG)
                 *va_arg(*ap, long int *) = data->ret;
             else

@@ -37,7 +37,7 @@
 
 __BEGIN_DECLS
 
-int open(const char *, int);
+int open(const char *, int, ...);
 
 __END_DECLS
 
