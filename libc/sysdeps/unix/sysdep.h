@@ -23,8 +23,8 @@
     RET_NOERRNO;                                \
     PSEUDO_END_NOERRNO(name)
 
-#define _SYSCALL_NOERRNO_NORETURN(name, argc)   \
-    PSEUDO_NOERRNO(_##name, name, argc);      \
+#define _SYSCALL_NORETURN(name, argc)           \
+    PSEUDO_NOERRNO(_##name, name, argc);        \
     PSEUDO_END_NOERRNO(_##name)
 
 #endif /* _SYSDEP_H */

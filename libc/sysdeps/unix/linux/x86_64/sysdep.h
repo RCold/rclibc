@@ -17,7 +17,7 @@
 
 #define DO_CALL(name, argc)                 \
     DO_ARG##argc;                           \
-    movl $SYS_##name, %eax;                 \
+    movl    $SYS_##name, %eax;              \
     syscall
 
 #define SYSCALL_ERROR_HANDLER               \
@@ -36,10 +36,10 @@
 
 #define PSEUDO_END(symbol) END(symbol)
 
-#define PSEUDO_NOERRNO(symbol, name, args)  \
+#define PSEUDO_NOERRNO(symbol, name, argc)  \
     .text;                                  \
     ENTRY(symbol);                          \
-    DO_CALL(name, args)
+    DO_CALL(name, argc)
 
 #define RET_NOERRNO retq
 

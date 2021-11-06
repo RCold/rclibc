@@ -42,10 +42,10 @@
 
 #define PSEUDO_END(symbol) END(symbol)
 
-#define PSEUDO_NOERRNO(symbol, name, args)  \
+#define PSEUDO_NOERRNO(symbol, name, argc)  \
     .text;                                  \
     ENTRY(symbol);                          \
-    DO_CALL(name, args)
+    DO_CALL(name, argc)
 
 #define RET_NOERRNO retq
 

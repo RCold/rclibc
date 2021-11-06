@@ -5,12 +5,12 @@
 #error This file is for Darwin target only.
 #endif /* __APPLE__ */
 
-#define C_SYMBOL_NAME(name)         _##name
-#define C_LABEL(name)               C_SYMBOL_NAME(name)##:
+#define C_SYMBOL_NAME(name)     _##name
+#define C_LABEL(name)           C_SYMBOL_NAME(name)##:
 
 #define ENTRY_P2ALIGN(name, alignment)      \
-    .globl C_SYMBOL_NAME(name);             \
-    .p2align alignment, 0x90;               \
+    .globl      C_SYMBOL_NAME(name);        \
+    .p2align    alignment, 0x90;            \
     C_LABEL(name)
 
 #define ENTRY(name)     ENTRY_P2ALIGN(name, 4)
