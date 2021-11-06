@@ -17,6 +17,8 @@
 #define FLAG_SIGNED         0x0100      /* signed data given */
 #define FLAG_NEGATIVE       0x0200      /* value is negative */
 
+#define find_char(s, c)     ((c) == '\0' ? NULL : strchr((s), (c)))
+
 struct print_data {
     char spec;              /* conversion specifier */
     int flag;               /* flags */
@@ -56,9 +58,9 @@ static int print_string(FILE *fp, struct print_data *data, const char *s, int si
 static int print_prefix(FILE *fp, struct print_data *data) {
     int n = 0;
     char prefix[2];
-    if (strchr("+- 0", data->prefix) != NULL) {
+    if (find_char("+- 0", data->prefix) != NULL) {
         prefix[n++] = data->prefix;
-    } else if (strchr("xX", data->prefix) != NULL) {
+    } else if (find_char("xX", data->prefix) != NULL) {
         prefix[n++] = '0';
         prefix[n++] = data->prefix;
     }
@@ -164,9 +166,9 @@ static int print_int(FILE *fp, struct print_data *data, va_list *ap) {
 
 static int print(FILE *fp, struct print_data *data, va_list *ap) {
     char *s, *p;
-    if (strchr("eEfgG", data->spec) != NULL)
+    if (find_char("eEfgG", data->spec) != NULL)
         return print_float(fp, data, ap);
-    else if (strchr("diouxXp", data->spec) != NULL)
+    else if (find_char("diouxXp", data->spec) != NULL)
         return print_int(fp, data, ap);
     data->prefix = '\0';
     switch (data->spec) {
@@ -235,7 +237,7 @@ int vfprintf(FILE *fp, const char *format, va_list arg) {
         data.width = 0;
         data.prec = -1;
         flag_chars = "-+ #0";
-        for (; (p = strchr(flag_chars, *fmt)) != NULL; fmt++)
+        for (; (p = find_char(flag_chars, *fmt)) != NULL; fmt++)
             data.flag |= (FLAG_LEFT << (p - flag_chars));
         if (*fmt == '*') {
             data.width = va_arg(ap, int);
@@ -259,7 +261,7 @@ int vfprintf(FILE *fp, const char *format, va_list arg) {
             }
         }
         flag_chars = "hlL";
-        if ((p = strchr(flag_chars, *fmt)) != NULL) {
+        if ((p = find_char(flag_chars, *fmt)) != NULL) {
             data.flag |= (FLAG_SHORT << (p - flag_chars));
             fmt++;
         }
