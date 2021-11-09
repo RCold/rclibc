@@ -1,21 +1,22 @@
 #include "errno.h"
+#include "stdio.h"
 #include "string.h"
 
-static char buf[16];
+static char buf[64];
 
 char *strerror(int errnum) {
     switch (errnum) {
         case 0:
-            strcpy(buf, "No error");
+            strcpy(buf, "Undefined error: 0");
             break;
         case EDOM:
-            strcpy(buf, "Domain error");
+            strcpy(buf, "Numerical argument out of domain");
             break;
         case ERANGE:
-            strcpy(buf, "Range error");
+            strcpy(buf, "Result too large");
             break;
         default:
-            strcpy(buf, "Unknown error");
+            sprintf(buf, "Unknown error: %d", errnum);
             break;
     }
     return buf;
