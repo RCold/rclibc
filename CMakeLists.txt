@@ -78,6 +78,7 @@ list(APPEND SRCS
         libc/stdio/tmpnam.c
         libc/stdio/ungetc.c
         libc/stdio/vfprintf.c
+        libc/stdio/vprintf.c
         libc/stdio/vsprintf.c
         libc/stdlib/_rseed.c
         libc/stdlib/abort.c
