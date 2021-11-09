@@ -60,6 +60,7 @@ list(APPEND SRCS
         libc/stdio/fprintf.c
         libc/stdio/fputc.c
         libc/stdio/fputs.c
+        libc/stdio/fread.c
         libc/stdio/freopen.c
         libc/stdio/fwrite.c
         libc/stdio/getc.c
