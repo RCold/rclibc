@@ -66,6 +66,7 @@ list(APPEND SRCS
         libc/stdio/getc.c
         libc/stdio/getchar.c
         libc/stdio/gets.c
+        libc/stdio/perror.c
         libc/stdio/printf.c
         libc/stdio/putc.c
         libc/stdio/putchar.c
