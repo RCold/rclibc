@@ -84,6 +84,9 @@ list(APPEND SRCS
         libc/stdlib/_rseed.c
         libc/stdlib/abort.c
         libc/stdlib/abs.c
+        libc/stdlib/atof.c
+        libc/stdlib/atoi.c
+        libc/stdlib/atol.c
         libc/stdlib/div.c
         libc/stdlib/labs.c
         libc/stdlib/ldiv.c
