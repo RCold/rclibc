@@ -6,15 +6,27 @@
 
 #include <stddef.h>
 
+#ifdef _WIN32
 #define CLOCKS_PER_SEC ((clock_t) 1000)
+#else
+#define CLOCKS_PER_SEC ((clock_t) 1000000)
+#endif
 
 #include <sys/cdefs.h>
 
 __BEGIN_DECLS
 
+#ifdef __APPLE__
 typedef unsigned long int clock_t;
+#else
+typedef long int clock_t;
+#endif /* __APPLE__ */
 
+#ifdef _WIN64
+__extension__ typedef __int64 time_t;
+#else
 typedef long int time_t;
+#endif /* _WIN64 */
 
 struct tm {
     int tm_sec;
