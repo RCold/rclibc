@@ -10,6 +10,6 @@ char *_tmpnam(char *s, unsigned int *u) {
         if (n <= 0)
             return NULL;
         sprintf(s + n, "t%4x.%u", getpid(), (*u)++);
-    } while (access(s, 0) == 0);
+    } while (access(s, F_OK) == 0);
     return s;
 }
