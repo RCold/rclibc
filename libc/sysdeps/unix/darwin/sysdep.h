@@ -16,9 +16,10 @@
 #define ENTRY(name)     ENTRY_P2ALIGN(name, 4)
 #define END(name)
 
+#include "syscall.h"
+
 #ifdef __x86_64__
 
-#include "syscall.h"
 #include "x86_64/sysdep.h"
 
 #else
