@@ -121,6 +121,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Darwin)
     enable_language(ASM)
     list(APPEND SRCS
             libc/sysdeps/unix/_exit.S
+            libc/sysdeps/unix/_tmpdir.c
             libc/sysdeps/unix/access.S
             libc/sysdeps/unix/close.S
             libc/sysdeps/unix/getpid.S
