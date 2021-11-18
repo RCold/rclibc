@@ -10,7 +10,7 @@
 #define CLOCKS_PER_SEC ((clock_t) 1000)
 #else
 #define CLOCKS_PER_SEC ((clock_t) 1000000)
-#endif
+#endif /* _WIN32 */
 
 #include <sys/cdefs.h>
 
