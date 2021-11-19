@@ -81,6 +81,7 @@ list(APPEND SRCS
         libc/stdio/vfprintf.c
         libc/stdio/vprintf.c
         libc/stdio/vsprintf.c
+        libc/stdlib/_prand.c
         libc/stdlib/_rseed.c
         libc/stdlib/abort.c
         libc/stdlib/abs.c

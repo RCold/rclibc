@@ -8,6 +8,8 @@ __BEGIN_DECLS
 
 extern unsigned long int _rseed;
 
+int _prand(void);
+
 __END_DECLS
 
 #endif /* __STDLIB_H */

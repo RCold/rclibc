@@ -47,7 +47,7 @@ void _freefile(FILE *);
 
 int _tmpdir(char *, size_t);
 
-char *_tmpnam(char *, unsigned int *);
+char *_tmpnam(char *, size_t);
 
 char *_ultoa(uintptr_t, char *, unsigned int, const char *);
 
