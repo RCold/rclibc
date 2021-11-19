@@ -1,4 +1,5 @@
 #include "_stdio.h"
+#include "_unistd.h"
 #include "string.h"
 #include "sys/_stat.h"
 
@@ -18,8 +19,7 @@ int _tmpdir(char *s, size_t size) {
     size_t dlen = strlen(dir);
     while (dlen > 1 && dir[dlen - 1] == '/')
         dlen--;
-    if (!direxists(dir) || dlen + 2 > size)
+    if (dlen + 2 > size || !direxists(dir) || access(dir, W_OK) != 0)
         return -1;
-    sprintf(s, "%.*s/", (int) dlen, dir);
-    return (int) dlen + 1;
+    return sprintf(s, "%.*s/", (int) dlen, dir);
 }
