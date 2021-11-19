@@ -88,7 +88,8 @@ static int print_float(FILE *fp, struct print_data *data, va_list *ap) {
 }
 
 static int print_int(FILE *fp, struct print_data *data, va_list *ap) {
-    int base, buflen;
+    int buflen;
+    unsigned int base;
     char *p;
     char *digs = "0123456789abcdef";
     char buf[INT_BUFSIZE];
@@ -134,10 +135,9 @@ static int print_int(FILE *fp, struct print_data *data, va_list *ap) {
         data->prec = 1;
     else
         data->flag &= ~FLAG_ZERO;
-    p = _ultoa(val.u, buf + INT_BUFSIZE, base, digs);
-    buflen = (int) (buf + INT_BUFSIZE - p);
+    p = _ultoa(val.u, buf + sizeof(buf), base, digs);
+    buflen = (int) (buf + sizeof(buf) - p);
     data->size = buflen > data->prec ? buflen : data->prec;
-    data->prefix = '\0';
     if (data->spec == 'p') {
         data->prefix = 'x';
     } else if (data->flag & FLAG_SIGNED) {
@@ -152,6 +152,8 @@ static int print_int(FILE *fp, struct print_data *data, va_list *ap) {
             data->prefix = '0';
         else if ((data->spec == 'x' || data->spec == 'X') && val.u != 0)
             data->prefix = data->spec;
+    } else {
+        data->prefix = '\0';
     }
     if (print_prefix(fp, data) != 0)
         return -1;

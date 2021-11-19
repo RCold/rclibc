@@ -49,7 +49,7 @@ int _tmpdir(char *, size_t);
 
 char *_tmpnam(char *, unsigned int *);
 
-char *_ultoa(uintptr_t, char *, int, const char *);
+char *_ultoa(uintptr_t, char *, unsigned int, const char *);
 
 __END_DECLS
 

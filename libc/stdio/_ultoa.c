@@ -1,13 +1,7 @@
 #include "_stdio.h"
 
-char *_ultoa(uintptr_t val, char *p, int base, const char *digs) {
+char *_ultoa(uintptr_t val, char *p, unsigned int base, const char *digs) {
     switch (base) {
-        case 10:
-            while (val != 0) {
-                *--p = digs[val % 10];
-                val /= 10;
-            }
-            break;
         case 8:
             while (val != 0) {
                 *--p = digs[val & 7];
@@ -21,6 +15,10 @@ char *_ultoa(uintptr_t val, char *p, int base, const char *digs) {
             }
             break;
         default:
+            while (val != 0) {
+                *--p = digs[val % base];
+                val /= base;
+            }
             break;
     }
     return p;
