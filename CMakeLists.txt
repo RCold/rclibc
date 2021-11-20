@@ -126,6 +126,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Darwin)
             libc/sysdeps/unix/access.S
             libc/sysdeps/unix/close.S
             libc/sysdeps/unix/getpid.S
+            libc/sysdeps/unix/gettimeofday.S
             libc/sysdeps/unix/open.S
             libc/sysdeps/unix/read.S
             libc/sysdeps/unix/rename.S
