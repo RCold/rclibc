@@ -7,7 +7,7 @@
 #define P_tmpdir    "/var/tmp/"
 #else
 #define P_tmpdir    "/tmp"
-#endif
+#endif /* __APPLE__ */
 
 static int direxists(const char *dir) {
     struct stat buf;
