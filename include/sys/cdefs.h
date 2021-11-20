@@ -10,14 +10,12 @@
 #endif /* __cplusplus */
 
 #ifdef __GNUC__
-#define __long          int
 #define __int8          char
 #define __int16         short int
 #define __int32         int
 #define __int64         long long int
 #else
 #define __extension__
-#define __long          long int
 #endif /* __GNUC__ */
 
 #endif /* _SYS_CDEFS_H */

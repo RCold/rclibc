@@ -48,7 +48,7 @@
 __BEGIN_DECLS
 
 typedef int BOOL;                       /* minwindef.h */
-typedef unsigned __long DWORD;          /* minwindef.h */
+typedef unsigned long int DWORD;        /* minwindef.h */
 typedef CONST void far *LPCVOID;        /* minwindef.h */
 typedef DWORD far *LPDWORD;             /* minwindef.h */
 typedef char CHAR;                      /* winnt.h */
@@ -60,8 +60,8 @@ typedef CONST CHAR *LPCSTR;             /* winnt.h */
 __extension__ typedef __int64 LONG_PTR;             /* basetsd.h */
 __extension__ typedef unsigned __int64 ULONG_PTR;   /* basetsd.h */
 #else
-typedef __long LONG_PTR;                            /* basetsd.h */
-typedef unsigned __long ULONG_PTR;                  /* basetsd.h */
+typedef long int LONG_PTR;                          /* basetsd.h */
+typedef unsigned long int ULONG_PTR;                /* basetsd.h */
 #endif /* _WIN64 */
 
 typedef struct _OVERLAPPED {
