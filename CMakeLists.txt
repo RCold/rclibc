@@ -35,6 +35,7 @@ list(APPEND SRCS
         libc/ctype/tolower.c
         libc/ctype/toupper.c
         libc/errno/errno.c
+        libc/locale/_getlocaleinfo.c
         libc/locale/localeconv.c
         libc/locale/setlocale.c
         libc/stdio/_allocbuf.c
