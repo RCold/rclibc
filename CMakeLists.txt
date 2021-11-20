@@ -36,6 +36,7 @@ list(APPEND SRCS
         libc/ctype/toupper.c
         libc/errno/errno.c
         libc/locale/localeconv.c
+        libc/locale/setlocale.c
         libc/stdio/_allocbuf.c
         libc/stdio/_allocfile.c
         libc/stdio/_fclose.c
