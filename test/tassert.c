@@ -5,7 +5,7 @@
 
 jmp_buf rec;
 
-static void sigabrt() {
+static void sigabrt(void) {
     longjmp(rec, 1);
 }
 
