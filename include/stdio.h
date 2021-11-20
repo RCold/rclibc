@@ -50,7 +50,7 @@ typedef struct {
     char *_tmpfname;
 } FILE;
 
-typedef long int fpos_t;
+__extension__ typedef __int64 fpos_t;
 
 extern FILE *_stdin;
 extern FILE *_stdout;
