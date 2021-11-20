@@ -8,7 +8,7 @@ __BEGIN_DECLS
 
 extern unsigned long int _rseed;
 
-int _rand(unsigned long int *seed);
+int _rand(unsigned long int *);
 
 __END_DECLS
 
