@@ -51,7 +51,6 @@ list(APPEND SRCS
         libc/stdio/_stdin.c
         libc/stdio/_stdout.c
         libc/stdio/_tmpnam.c
-        libc/stdio/_ultoa.c
         libc/stdio/clearerr.c
         libc/stdio/fclose.c
         libc/stdio/feof.c
@@ -86,6 +85,7 @@ list(APPEND SRCS
         libc/stdio/vsprintf.c
         libc/stdlib/_rand.c
         libc/stdlib/_rseed.c
+        libc/stdlib/_ultoa.c
         libc/stdlib/abort.c
         libc/stdlib/abs.c
         libc/stdlib/atof.c

@@ -1,7 +1,8 @@
+#include "_stdint.h"
 #include "_stdio.h"
+#include "_stdlib.h"
 #include "ctype.h"
 #include "stdarg.h"
-#include "stdlib.h"
 #include "string.h"
 
 #define INT_BUFSIZE         24          /* output buffer size for integers */
@@ -90,7 +91,6 @@ static int print_float(FILE *fp, struct print_data *data, va_list *ap) {
 static int print_int(FILE *fp, struct print_data *data, va_list *ap) {
     int buflen;
     unsigned int base;
-    char *p;
     char *digs = "0123456789abcdef";
     char buf[INT_BUFSIZE];
     union {
@@ -135,8 +135,7 @@ static int print_int(FILE *fp, struct print_data *data, va_list *ap) {
         data->prec = 1;
     else
         data->flag &= ~FLAG_ZERO;
-    p = _ultoa(val.u, buf + sizeof(buf), base, digs);
-    buflen = (int) (buf + sizeof(buf) - p);
+    buflen = (int) _ultoa(val.u, buf, base, digs);
     data->size = buflen > data->prec ? buflen : data->prec;
     if (data->spec == 'p') {
         data->prefix = 'x';
@@ -159,7 +158,7 @@ static int print_int(FILE *fp, struct print_data *data, va_list *ap) {
         return -1;
     if (print_chars(fp, data, '0', data->size - buflen) != 0)
         return -1;
-    if (print_string(fp, data, p, buflen) != 0)
+    if (print_string(fp, data, buf, buflen) != 0)
         return -1;
     if (print_suffix(fp, data) != 0)
         return -1;

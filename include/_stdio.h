@@ -21,7 +21,6 @@
 #define __is_reading(fp)    ((fp)->_rend > (fp)->_base)
 #define __is_writing(fp)    ((fp)->_wend > (fp)->_base)
 
-#include <_stdint.h>
 #include <stdio.h>
 #include <sys/cdefs.h>
 
@@ -48,8 +47,6 @@ void _freefile(FILE *);
 int _tmpdir(char *, size_t);
 
 char *_tmpnam(char *, size_t);
-
-char *_ultoa(uintptr_t, char *, unsigned int, const char *);
 
 __END_DECLS
 
