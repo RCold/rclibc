@@ -116,6 +116,7 @@ list(APPEND SRCS
         libc/string/strspn.c
         libc/string/strstr.c
         libc/string/strtok.c
+        libc/time/asctime.c
         libc/time/ctime.c
         libc/time/time.c)
 if (CMAKE_SYSTEM_NAME STREQUAL Windows)
