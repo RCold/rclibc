@@ -17,5 +17,6 @@
 #define SYS_rmdir           84
 #define SYS_unlink          87
 #define SYS_gettimeofday    96
+#define SYS_getrusage       98
 
 #endif /* _LINUX_X86_64_SYSCALL_H */

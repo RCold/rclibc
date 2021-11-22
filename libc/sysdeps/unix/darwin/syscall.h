@@ -17,5 +17,6 @@
 #define SYS_rmdir           137
 #define SYS_unlink          10
 #define SYS_gettimeofday    116
+#define SYS_getrusage       117
 
 #endif /* _DARWIN_SYSCALL_H */
