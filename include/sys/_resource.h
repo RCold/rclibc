@@ -31,7 +31,7 @@ struct rusage {
 struct rusage {
     struct timeval ru_utime;
     struct timeval ru_stime;
-}
+};
 
 #else
 #error Undefined platform for resource
