@@ -3,6 +3,9 @@
 
 #include <_time.h>
 
+#define S_IFMT      0170000
+#define S_IFDIR     0040000
+
 #define S_ISDIR(m)  (((m) & S_IFMT) == S_IFDIR)
 
 #include <sys/cdefs.h>
@@ -10,9 +13,6 @@
 __BEGIN_DECLS
 
 #if defined(__linux__) && defined(__x86_64__)
-
-#define S_IFMT      0170000
-#define S_IFDIR     0040000
 
 typedef unsigned long int dev_t;
 typedef unsigned long int ino_t;
@@ -47,9 +47,6 @@ struct stat {
 
 #elif defined(__APPLE__) && defined(__x86_64__)
 
-#define S_IFMT      0170000
-#define S_IFDIR     0040000
-
 typedef __int32 dev_t;
 typedef unsigned __int16 mode_t;
 typedef unsigned __int16 nlink_t;
@@ -83,6 +80,14 @@ __extension__ struct stat {
 #define st_mtime st_mtimespec.tv_sec
 #define st_ctime st_ctimespec.tv_sec
 #define st_birthtime st_birthtimespec.tv_sec
+};
+
+#elif defined(_WIN32)
+
+typedef unsigned __int16 mode_t;
+
+struct stat {
+    mode_t st_mode;
 };
 
 #else
