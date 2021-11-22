@@ -44,7 +44,7 @@ FILE *_fopen(const char *filename, const char *mode, FILE *fp) {
     if (fp->_flag & __IOBIN)
         oflag |= O_BINARY;
     fp->_file = open(filename, oflag, oprot);
-    if (fp->_file == -1) {
+    if (fp->_file < 0) {
         fp->_flag = 0;
         _freefile(fp);
         return NULL;

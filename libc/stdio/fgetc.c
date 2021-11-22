@@ -9,7 +9,7 @@ int fgetc(FILE *fp) {
         return EOF;
     if (fp->_ptr == NULL)
         _allocbuf(fp);
-    if ((n = read(fp->_file, fp->_base, fp->_end - fp->_base)) == -1) {
+    if ((n = read(fp->_file, fp->_base, fp->_end - fp->_base)) < 0) {
         fp->_flag |= __IOERR;
         return EOF;
     }
