@@ -50,6 +50,7 @@ list(APPEND SRCS
         libc/stdio/_stderr.c
         libc/stdio/_stdin.c
         libc/stdio/_stdout.c
+        libc/stdio/_tmpdir.c
         libc/stdio/_tmpnam.c
         libc/stdio/clearerr.c
         libc/stdio/fclose.c
@@ -129,7 +130,6 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Darwin)
     enable_language(ASM)
     list(APPEND SRCS
             libc/sysdeps/unix/_exit.S
-            libc/sysdeps/unix/_tmpdir.c
             libc/sysdeps/unix/access.S
             libc/sysdeps/unix/close.S
             libc/sysdeps/unix/getpid.S
