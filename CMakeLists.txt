@@ -117,10 +117,14 @@ list(APPEND SRCS
         libc/string/strspn.c
         libc/string/strstr.c
         libc/string/strtok.c
+        libc/time/_daystomonth.c
+        libc/time/_gmtime.c
+        libc/time/_tmbuf.c
         libc/time/asctime.c
         libc/time/clock.c
         libc/time/ctime.c
         libc/time/difftime.c
+        libc/time/gmtime.c
         libc/time/time.c)
 if (CMAKE_SYSTEM_NAME STREQUAL Windows)
     list(APPEND SRCS
