@@ -4,7 +4,7 @@ div_t div(int numer, int denom) {
     div_t ret;
     ret.quot = numer / denom;
     ret.rem = numer % denom;
-    if ((numer > 0 && ret.rem < 0) || (numer < 0 && ret.rem > 0)) {
+    if ((numer < 0) != (ret.rem < 0)) {
         if (ret.quot < 0) {
             ret.quot++;
             ret.rem -= denom;
