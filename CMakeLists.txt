@@ -120,6 +120,7 @@ list(APPEND SRCS
         libc/time/asctime.c
         libc/time/clock.c
         libc/time/ctime.c
+        libc/time/difftime.c
         libc/time/time.c)
 if (CMAKE_SYSTEM_NAME STREQUAL Windows)
     list(APPEND SRCS
