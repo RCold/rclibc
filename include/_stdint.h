@@ -47,6 +47,33 @@
 
 #endif /* __GNUC__ */
 
+#define INT32_MAX       INT32_C(2147483647)
+#define INT32_MIN       (-INT32_MAX - INT32_C(1))
+#define UINT32_MAX      UINT32_C(4294967295)
+
+#define INT64_MAX       INT64_C(9223372036854775807)
+#define INT64_MIN       (-INT64_MAX - INT64_C(1))
+#define UINT64_MAX      UINT64_C(18446744073709551615)
+
+#include <limits.h>
+
+#if defined(_WIN64)
+#define INTPTR_MAX      INT64_MAX
+#elif defined(_WIN32)
+#define INTPTR_MAX      INT_MAX
+#else
+#define INTPTR_MAX      LONG_MAX
+#endif /* __INTPTR_MAX__ */
+#define INTPTR_MIN      (-INTPTR_MAX - 1)
+
+#if defined(_WIN64)
+#define UINTPTR_MAX     UINT64_MAX
+#elif defined(_WIN32)
+#define UINTPTR_MAX     UINT_MAX
+#else
+#define UINTPTR_MAX     ULONG_MAX
+#endif /* __UINTPTR_MAX__ */
+
 #include <sys/cdefs.h>
 
 #ifdef __INT32_TYPE__

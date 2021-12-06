@@ -11,7 +11,7 @@
 #define __MONS_PER_YEAR     12
 #define __YEARS_PER_ERA     400
 #define __LEAP_DAYS_PER_ERA 97
-#define __DAYS_PER_ERA      (__YEARS_PER_ERA * __DAYS_PER_NYEAR + __LEAP_DAYS_PER_ERA)
+#define __DAYS_PER_ERA      (__DAYS_PER_NYEAR * __YEARS_PER_ERA + __LEAP_DAYS_PER_ERA)
 
 #define __DAYS_FROM_YEAR_0_TO_EPOCH     719528
 
@@ -40,6 +40,22 @@
 #define __EPOCH_YEAR        1970
 #define __EPOCH_WDAY        __TM_THURSDAY
 
+#ifdef _WIN64
+
+#include <_stdint.h>
+
+#define __TIME_MAX          INT64_MAX
+#define __TIME_MIN          INT64_MIN
+
+#else
+
+#include <limits.h>
+
+#define __TIME_MAX          LONG_MAX
+#define __TIME_MIN          LONG_MIN
+
+#endif /* _WIN64 */
+
 #include <time.h>
 #include <sys/cdefs.h>
 
@@ -50,16 +66,23 @@ struct timespec {
     long int tv_nsec;
 };
 
+struct _tzrule {
+    long _offset;
+};
+
 extern int daylight;
-extern long timezone;
+extern long int timezone;
 
 extern struct tm *_tmbuf;
+extern struct _tzrule _tzrule[2];
 
 void tzset(void);
 
 int _daystomonth(int, int);
 
 int _gmtime(time_t, struct tm *);
+
+int _isindst(struct tm *);
 
 __END_DECLS
 
